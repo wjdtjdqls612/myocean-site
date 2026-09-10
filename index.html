@@ -133,12 +133,12 @@
     12%{   translate:calc(var(--dx)*0.18) calc(var(--dy)*0.35);    scale:1 1; }
     28%{   translate:calc(var(--dx)*0.42) calc(var(--dy)*-0.55);   scale:1 1; }
     45%{   translate:calc(var(--dx)*0.78) calc(var(--dy)*0.3);     scale:1 1; }
-    49%{   translate:var(--dx) calc(var(--dy)*-0.15);              scale:1 1; }
-    51%{   translate:var(--dx) calc(var(--dy)*-0.15);              scale:-1 1; }
+    49.9%{ translate:var(--dx) calc(var(--dy)*-0.15);              scale:1 1; }
+    50%{   translate:var(--dx) calc(var(--dy)*-0.15);              scale:-1 1; }
     55%{   translate:calc(var(--dx)*0.78) calc(var(--dy)*0.3);     scale:-1 1; }
     72%{   translate:calc(var(--dx)*0.42) calc(var(--dy)*-0.55);   scale:-1 1; }
     88%{   translate:calc(var(--dx)*0.18) calc(var(--dy)*0.35);    scale:-1 1; }
-    99%{   translate:0 0;                                          scale:-1 1; }
+    99.9%{ translate:0 0;                                          scale:-1 1; }
     100%{  translate:0 0;                                          scale:1 1; }
   }
   .tank-empty-note{
@@ -546,7 +546,24 @@ async function refreshTank(){
   const countEl = document.getElementById('tankCount');
   if(!layer) return;
   countEl.textContent = approved.length + '개의 마음이 도착했어요';
-  layer.innerHTML = approved.map(m=>{
+
+  const approvedIds = new Set(approved.map(m=>String(m.id)));
+
+  // 더 이상 승인 상태가 아닌(거절/삭제된) 물고기만 제거
+  layer.querySelectorAll('.fish').forEach(el=>{
+    if(!approvedIds.has(el.dataset.id)) el.remove();
+  });
+
+  // 이미 어항에 떠 있는 물고기는 절대 다시 만들지 않음(애니메이션이 끊기지 않도록)
+  // -> 새로 승인된 메시지에 대해서만 새 물고기를 추가
+  const existingIds = new Set(
+    Array.from(layer.querySelectorAll('.fish')).map(el=>el.dataset.id)
+  );
+
+  approved.forEach(m=>{
+    const idStr = String(m.id);
+    if(existingIds.has(idStr)) return; // 이미 떠 있는 물고기는 건드리지 않음
+
     const top = (16 + Math.random()*58).toFixed(1);
     const dur = (40 + Math.random()*22).toFixed(1);
     const delay = (-(Math.random()*dur)).toFixed(1);
@@ -555,14 +572,23 @@ async function refreshTank(){
     const dx = (190 + Math.random()*70).toFixed(0);
     const dy = (10 + Math.random()*16).toFixed(0);
     const colorKey = colorKeyForId(m.id);
-    return `<div class="fish" data-id="${m.id}" title="눌러서 메시지 보기"
-      style="top:${top}%; width:${w}px; height:${h}px; --dur:${dur}s; --delay:${delay}s; --dx:${dx}px; --dy:${dy}px;">${fishSvgFor(colorKey, m.id)}</div>`;
-  }).join('');
-  layer.querySelectorAll('.fish').forEach(el=>{
+
+    const el = document.createElement('div');
+    el.className = 'fish';
+    el.dataset.id = idStr;
+    el.title = '눌러서 메시지 보기';
+    el.style.top = top + '%';
+    el.style.width = w + 'px';
+    el.style.height = h + 'px';
+    el.style.setProperty('--dur', dur + 's');
+    el.style.setProperty('--delay', delay + 's');
+    el.style.setProperty('--dx', dx + 'px');
+    el.style.setProperty('--dy', dy + 'px');
+    el.innerHTML = fishSvgFor(colorKey, idStr);
     el.addEventListener('click', ()=>{
-      const item = approved.find(m=>m.id === el.dataset.id);
-      if(item) showToast(item.name, item.text);
+      showToast(m.name, m.text);
     });
+    layer.appendChild(el);
   });
 }
 
