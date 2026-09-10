@@ -271,7 +271,7 @@
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-app.js";
 import {
-  getFirestore, collection, addDoc, getDocs, doc, updateDoc, deleteDoc
+  getFirestore, collection, addDoc, getDocs, doc, updateDoc, deleteDoc, query, where
 } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-firestore.js";
 import {
   getAuth, signInWithEmailAndPassword, signOut
@@ -332,7 +332,22 @@ function withTimeout(promise, ms){
   });
 }
 
-async function loadMessages(){
+// 공개(비로그인) 화면용: status가 'approved'인 문서만 쿼리 조건으로 명시해서 요청
+// -> Firestore 보안규칙이 "이 쿼리가 반환할 수 있는 모든 문서가 규칙을 통과하는지"를
+//    where절만으로 증명할 수 있어야 허용되기 때문에, where 없이 전체 컬렉션을 읽으면
+//    (승인되지 않은 문서가 하나라도 섞여 있을 수 있어 증명이 안 되므로) 로그아웃 상태에서는
+//    전체 쿼리 자체가 permission-denied로 거부됨 -> catch에서 빈 배열을 반환해 물고기가
+//    전부 사라져 보였던 것의 진짜 원인이었음
+async function loadPublicMessages(){
+  try{
+    const q = query(collection(db, MESSAGES_COL), where('status','==','approved'));
+    const snap = await withTimeout(getDocs(q), 10000);
+    return snap.docs.map(d => ({ id: d.id, ...d.data() }));
+  }catch(e){ return []; }
+}
+// 관리자(로그인) 화면용: 로그인 상태에서는 보안규칙상 모든 문서를 읽을 수 있으므로
+// 대기/승인/거절 전체 목록이 필요한 관리자 패널에서만 이 함수를 사용
+async function loadAllMessagesForAdmin(){
   try{
     const snap = await withTimeout(getDocs(collection(db, MESSAGES_COL)), 10000);
     return snap.docs.map(d => ({ id: d.id, ...d.data() }));
@@ -540,7 +555,7 @@ function fishSvgFor(colorKey, uid){
 }
 
 async function refreshTank(){
-  const list = await loadMessages();
+  const list = await loadPublicMessages();
   const approved = list.filter(m=>m.status==='approved').sort((a,b)=>a.ts-b.ts);
   const layer = document.getElementById('notesLayer');
   const countEl = document.getElementById('tankCount');
@@ -715,7 +730,7 @@ async function refreshAdmin(){
     btn.classList.toggle('active', btn.dataset.tab === adminTab);
   });
 
-  const list = await loadMessages();
+  const list = await loadAllMessagesForAdmin();
   const items = adminTab === 'pending'
     ? list.filter(m=>m.status === 'pending').sort((a,b)=>a.ts-b.ts)
     : list.slice().sort((a,b)=>b.ts-a.ts);
