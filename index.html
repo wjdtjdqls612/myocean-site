@@ -121,7 +121,7 @@
     position:absolute; inset:0; overflow:hidden; pointer-events:none;
   }
   .fish{
-    position:absolute; left:-30px;
+    position:absolute;
     cursor:pointer; pointer-events:auto;
     animation: swim var(--dur,24s) ease-in-out infinite;
     animation-delay: var(--delay,0s);
@@ -560,30 +560,53 @@ async function refreshTank(){
     Array.from(layer.querySelectorAll('.fish')).map(el=>el.dataset.id)
   );
 
+  // 어항(fish-layer)의 실제 렌더링 크기를 측정 — 화면 크기와 무관하게
+  // 물고기 이동 범위를 이 크기에 맞춰 계산해서 탱크 밖으로 못 나가게 함
+  const rect = layer.getBoundingClientRect();
+  const boxW = rect.width  > 0 ? rect.width  : 300;
+  const boxH = rect.height > 0 ? rect.height : 190;
+  const marginX = 8;  // 좌우 여백(px)
+  const marginY = 6;  // 상하 여백(px)
+
   approved.forEach(m=>{
     const idStr = String(m.id);
     if(existingIds.has(idStr)) return; // 이미 떠 있는 물고기는 건드리지 않음
 
-    const top = (16 + Math.random()*58).toFixed(1);
     const dur = (40 + Math.random()*22).toFixed(1);
     const delay = (-(Math.random()*dur)).toFixed(1);
-    const w = (16 + Math.random()*10).toFixed(0);
-    const h = (w*0.56).toFixed(0);
-    const dx = (190 + Math.random()*70).toFixed(0);
-    const dy = (10 + Math.random()*16).toFixed(0);
+    const w = (16 + Math.random()*10);
+    const h = w*0.56;
+
+    // 가로: 시작점(startLeft)에서 오른쪽 한계(maxRight)까지의 실제 이동 가능 거리만큼만 dx로 사용
+    // -> 어떤 화면 폭에서도 물고기가 오른쪽 여백을 넘어가지 않음
+    const startLeft = marginX;
+    const maxRight = Math.max(startLeft + 20, boxW - marginX - w);
+    const dx = maxRight - startLeft;
+
+    // 세로: top(기준 위치)을 잡고, 위/아래로 흔들리는 폭(dy)이 그 기준 위치의
+    // 남은 여유 공간을 절대 넘지 않도록 계산 (스윙 키프레임의 최대 배수는 0.55)
+    const topMin = marginY;
+    const topMax = Math.max(topMin, boxH - h - marginY);
+    const top = topMin + Math.random()*(topMax - topMin);
+    const upSpace = top - topMin;
+    const downSpace = topMax - top;
+    const dyMax = Math.max(4, Math.min(upSpace, downSpace) / 0.6);
+    const dy = Math.min(dyMax, 6 + Math.random()*14);
+
     const colorKey = colorKeyForId(m.id);
 
     const el = document.createElement('div');
     el.className = 'fish';
     el.dataset.id = idStr;
     el.title = '눌러서 메시지 보기';
-    el.style.top = top + '%';
-    el.style.width = w + 'px';
-    el.style.height = h + 'px';
+    el.style.left = startLeft.toFixed(1) + 'px';
+    el.style.top = top.toFixed(1) + 'px';
+    el.style.width = w.toFixed(1) + 'px';
+    el.style.height = h.toFixed(1) + 'px';
     el.style.setProperty('--dur', dur + 's');
     el.style.setProperty('--delay', delay + 's');
-    el.style.setProperty('--dx', dx + 'px');
-    el.style.setProperty('--dy', dy + 'px');
+    el.style.setProperty('--dx', dx.toFixed(1) + 'px');
+    el.style.setProperty('--dy', dy.toFixed(1) + 'px');
     el.innerHTML = fishSvgFor(colorKey, idStr);
     el.addEventListener('click', ()=>{
       showToast(m.name, m.text);
