@@ -113,7 +113,7 @@
   .tank-glow{ position:absolute; inset:0; background:radial-gradient(ellipse 60% 50% at 20% 15%, rgba(255,223,158,.30), transparent 65%); }
 
   .castle-img{
-    position:absolute; left:6%; bottom:14px;
+    position:absolute; left:6%; bottom:0;
     height:53%; width:auto; max-width:45%; object-fit:contain;
     filter:drop-shadow(0 6px 14px rgba(0,0,0,.45)) sepia(.15) saturate(1.05);
   }
@@ -129,15 +129,17 @@
   }
   .fish svg{ width:100%; height:100%; display:block; }
   @keyframes swim{
-    0%{   translate:0 0;                                          scale:1 1; }
-    20%{  translate:calc(var(--dx)*0.32) calc(var(--dy)*-1);      scale:1 1; }
-    40%{  translate:calc(var(--dx)*0.68) var(--dy);               scale:1 1; }
-    48%{  translate:var(--dx) calc(var(--dy)*-0.5);               scale:1 1; }
-    50%{  translate:var(--dx) calc(var(--dy)*-0.5);               scale:-1 1; }
-    60%{  translate:calc(var(--dx)*0.68) var(--dy);               scale:-1 1; }
-    80%{  translate:calc(var(--dx)*0.32) calc(var(--dy)*-1);      scale:-1 1; }
-    98%{  translate:0 var(--dy);                                  scale:-1 1; }
-    100%{ translate:0 0;                                          scale:1 1; }
+    0%{    translate:0 0;                                          scale:1 1; }
+    12%{   translate:calc(var(--dx)*0.18) calc(var(--dy)*0.35);    scale:1 1; }
+    28%{   translate:calc(var(--dx)*0.42) calc(var(--dy)*-0.55);   scale:1 1; }
+    45%{   translate:calc(var(--dx)*0.78) calc(var(--dy)*0.3);     scale:1 1; }
+    49%{   translate:var(--dx) calc(var(--dy)*-0.15);              scale:1 1; }
+    51%{   translate:var(--dx) calc(var(--dy)*-0.15);              scale:-1 1; }
+    55%{   translate:calc(var(--dx)*0.78) calc(var(--dy)*0.3);     scale:-1 1; }
+    72%{   translate:calc(var(--dx)*0.42) calc(var(--dy)*-0.55);   scale:-1 1; }
+    88%{   translate:calc(var(--dx)*0.18) calc(var(--dy)*0.35);    scale:-1 1; }
+    99%{   translate:0 0;                                          scale:-1 1; }
+    100%{  translate:0 0;                                          scale:1 1; }
   }
   .tank-empty-note{
     position:absolute; left:50%; top:44%; transform:translate(-50%,-50%);
@@ -403,7 +405,8 @@ async function renderPublic(){
 
       <div class="about-note">
         <div class="eyebrow-small">About</div>
-        <p>고립되고 지친 청소년들에게 전하는 응원 한마디, 이곳에 남겨주세요.</p>
+        <p>고립되고 지친 청소년들에게 전하는 응원 한마디,</p>
+        <p>이곳에 남겨주세요.</p>
         <p>다른 분들의 마음도 함께 볼 수 있어요.</p>
       </div>
 
@@ -486,13 +489,55 @@ async function renderPublic(){
   await refreshTank();
 }
 
-const FISH_SVG = `
-  <svg viewBox="0 0 32 18" xmlns="http://www.w3.org/2000/svg">
-    <polygon points="22,9 32,2 32,16" fill="#c98a4e"/>
-    <ellipse cx="13" cy="9" rx="11" ry="6.4" fill="#e8b86d"/>
-    <circle cx="6.5" cy="7" r="1.15" fill="#2a1c08"/>
-  </svg>
-`;
+// 물고기 색상 팔레트 (5종): 주황 / 파랑 / 보라 / 은색 / 오팔
+const FISH_PALETTES = {
+  orange: { tail: '#e0752e', body: '#f4a656' },
+  blue:   { tail: '#3d6fa8', body: '#5b8fc9' },
+  purple: { tail: '#7a4fa0', body: '#9a6fc2' },
+  silver: { tail: '#a9acb8', body: '#d7d9e2' },
+};
+const FISH_COLOR_KEYS = ['orange','blue','purple','silver','opal'];
+
+// 문자열을 안정적인 정수 해시로 변환 (메시지 id 기준으로 색을 고정하기 위함)
+function hashStr(str){
+  let h = 0;
+  for(let i=0;i<str.length;i++){ h = (h*31 + str.charCodeAt(i)) | 0; }
+  return Math.abs(h);
+}
+function colorKeyForId(id){
+  return FISH_COLOR_KEYS[hashStr(String(id)) % FISH_COLOR_KEYS.length];
+}
+
+function fishSvgFor(colorKey, uid){
+  if(colorKey === 'opal'){
+    const gid = 'opalGrad' + uid;
+    return `
+      <svg viewBox="0 0 32 18" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <linearGradient id="${gid}" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0%" stop-color="#f6c9e0"/>
+            <stop offset="35%" stop-color="#c9a6f2"/>
+            <stop offset="65%" stop-color="#9fd8e6"/>
+            <stop offset="100%" stop-color="#ffe6b8"/>
+          </linearGradient>
+        </defs>
+        <polygon points="22,9 32,2 32,16" fill="url(#${gid})"/>
+        <ellipse cx="13" cy="9" rx="11" ry="6.4" fill="url(#${gid})"/>
+        <ellipse cx="13" cy="9" rx="11" ry="6.4" fill="#f2a655" opacity="0.12"/>
+        <circle cx="6.5" cy="7" r="1.15" fill="#2a1c08"/>
+      </svg>
+    `;
+  }
+  const p = FISH_PALETTES[colorKey] || FISH_PALETTES.orange;
+  return `
+    <svg viewBox="0 0 32 18" xmlns="http://www.w3.org/2000/svg">
+      <polygon points="22,9 32,2 32,16" fill="${p.tail}"/>
+      <ellipse cx="13" cy="9" rx="11" ry="6.4" fill="${p.body}"/>
+      <ellipse cx="13" cy="9" rx="11" ry="6.4" fill="#f2a655" opacity="0.12"/>
+      <circle cx="6.5" cy="7" r="1.15" fill="#2a1c08"/>
+    </svg>
+  `;
+}
 
 async function refreshTank(){
   const list = await loadMessages();
@@ -503,14 +548,15 @@ async function refreshTank(){
   countEl.textContent = approved.length + '개의 마음이 도착했어요';
   layer.innerHTML = approved.map(m=>{
     const top = (16 + Math.random()*58).toFixed(1);
-    const dur = (24 + Math.random()*14).toFixed(1);
+    const dur = (40 + Math.random()*22).toFixed(1);
     const delay = (-(Math.random()*dur)).toFixed(1);
     const w = (16 + Math.random()*10).toFixed(0);
     const h = (w*0.56).toFixed(0);
     const dx = (190 + Math.random()*70).toFixed(0);
     const dy = (10 + Math.random()*16).toFixed(0);
+    const colorKey = colorKeyForId(m.id);
     return `<div class="fish" data-id="${m.id}" title="눌러서 메시지 보기"
-      style="top:${top}%; width:${w}px; height:${h}px; --dur:${dur}s; --delay:${delay}s; --dx:${dx}px; --dy:${dy}px;">${FISH_SVG}</div>`;
+      style="top:${top}%; width:${w}px; height:${h}px; --dur:${dur}s; --delay:${delay}s; --dx:${dx}px; --dy:${dy}px;">${fishSvgFor(colorKey, m.id)}</div>`;
   }).join('');
   layer.querySelectorAll('.fish').forEach(el=>{
     el.addEventListener('click', ()=>{
