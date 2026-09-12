@@ -188,6 +188,10 @@
     background:linear-gradient(180deg, rgba(242,166,85,.16), rgba(154,83,38,.22) 55%, rgba(20,12,5,.5));
   }
   .tank-modal-body .fish-layer{ pointer-events:none; }
+  .tank-modal-body .castle-img{
+    left:5%; bottom:0; height:46%; max-width:42%;
+  }
+  .tank-modal-body .tank-glow{ position:absolute; inset:0; pointer-events:none; }
 
   /* 확대 화면의 물고기: 바깥(wrap)은 이동만, 안쪽(body)만 좌우 반전.
      이렇게 나눠야 이름표가 같이 뒤집혀 거울글씨가 되는 것을 막을 수 있음. */
@@ -214,23 +218,23 @@
 
   /* 이동만 담당 (좌우 반전 없음) */
   @keyframes swimMove{
-    0%{    translate:0 0; }
-    12%{   translate:calc(var(--dx)*0.18) calc(var(--dy)*0.35); }
-    28%{   translate:calc(var(--dx)*0.42) calc(var(--dy)*-0.55); }
-    45%{   translate:calc(var(--dx)*0.78) calc(var(--dy)*0.3); }
-    50%{   translate:var(--dx) calc(var(--dy)*-0.15); }
-    55%{   translate:calc(var(--dx)*0.78) calc(var(--dy)*0.3); }
-    72%{   translate:calc(var(--dx)*0.42) calc(var(--dy)*-0.55); }
-    88%{   translate:calc(var(--dx)*0.18) calc(var(--dy)*0.35); }
-    100%{  translate:0 0; }
+    0%{    transform:translate(0,0); }
+    12%{   transform:translate(calc(var(--dx)*0.18), calc(var(--dy)*0.35)); }
+    28%{   transform:translate(calc(var(--dx)*0.42), calc(var(--dy)*-0.55)); }
+    45%{   transform:translate(calc(var(--dx)*0.78), calc(var(--dy)*0.3)); }
+    50%{   transform:translate(var(--dx), calc(var(--dy)*-0.15)); }
+    55%{   transform:translate(calc(var(--dx)*0.78), calc(var(--dy)*0.3)); }
+    72%{   transform:translate(calc(var(--dx)*0.42), calc(var(--dy)*-0.55)); }
+    88%{   transform:translate(calc(var(--dx)*0.18), calc(var(--dy)*0.35)); }
+    100%{  transform:translate(0,0); }
   }
   /* 반전만 담당 — 진행 방향이 바뀌는 50% 지점에서 즉시 전환 */
   @keyframes faceFlip{
-    0%{    scale:-1 1; }
-    49.9%{ scale:-1 1; }
-    50%{   scale:1 1; }
-    99.9%{ scale:1 1; }
-    100%{  scale:-1 1; }
+    0%{    transform:scaleX(-1); }
+    49.9%{ transform:scaleX(-1); }
+    50%{   transform:scaleX(1); }
+    99.9%{ transform:scaleX(1); }
+    100%{  transform:scaleX(-1); }
   }
 
   /* ---- 관리자 알림 바 ---- */
@@ -255,25 +259,28 @@
   /* ---- 접근성: 움직임 최소화 설정을 켠 사용자에게는 애니메이션을 멈춤 ----
      iOS '동작 줄이기', Android '애니메이션 제거', Windows '애니메이션 표시' 끔 등에 대응.
      전정기관 장애·편두통·멀미에 민감한 관람객이 어지럼증을 겪지 않도록 함. */
+  /* 물고기는 이 작품의 핵심이라 완전히 멈추지 않고, 훨씬 느리고 잔잔하게 움직이도록 함.
+     (이전에는 * 선택자로 모든 애니메이션을 정지시켜, 기기에 '동작 줄이기'가 켜져 있으면
+      물고기가 아예 움직이지 않는 문제가 있었음) */
   @media (prefers-reduced-motion: reduce){
-    .fish{ animation:none !important; }
+    .fish, .fish-wrap, .fish-body{ animation-duration:180s !important; }
     .mote{ animation:none !important; opacity:.35 !important; }
+    .admin-item.is-new{ animation:none !important; }
     html{ scroll-behavior:auto; }
-    *{ animation-duration:.01ms !important; animation-iteration-count:1 !important; transition-duration:.01ms !important; }
   }
   .fish svg{ width:100%; height:100%; display:block; }
   @keyframes swim{
-    0%{    translate:0 0;                                          scale:-1 1; }
-    12%{   translate:calc(var(--dx)*0.18) calc(var(--dy)*0.35);    scale:-1 1; }
-    28%{   translate:calc(var(--dx)*0.42) calc(var(--dy)*-0.55);   scale:-1 1; }
-    45%{   translate:calc(var(--dx)*0.78) calc(var(--dy)*0.3);     scale:-1 1; }
-    49.9%{ translate:var(--dx) calc(var(--dy)*-0.15);              scale:-1 1; }
-    50%{   translate:var(--dx) calc(var(--dy)*-0.15);              scale:1 1; }
-    55%{   translate:calc(var(--dx)*0.78) calc(var(--dy)*0.3);     scale:1 1; }
-    72%{   translate:calc(var(--dx)*0.42) calc(var(--dy)*-0.55);   scale:1 1; }
-    88%{   translate:calc(var(--dx)*0.18) calc(var(--dy)*0.35);    scale:1 1; }
-    99.9%{ translate:0 0;                                          scale:1 1; }
-    100%{  translate:0 0;                                          scale:-1 1; }
+    0%{    transform:translate(0,0) scaleX(-1); }
+    12%{   transform:translate(calc(var(--dx)*0.18), calc(var(--dy)*0.35)) scaleX(-1); }
+    28%{   transform:translate(calc(var(--dx)*0.42), calc(var(--dy)*-0.55)) scaleX(-1); }
+    45%{   transform:translate(calc(var(--dx)*0.78), calc(var(--dy)*0.3)) scaleX(-1); }
+    49.9%{ transform:translate(var(--dx), calc(var(--dy)*-0.15)) scaleX(-1); }
+    50%{   transform:translate(var(--dx), calc(var(--dy)*-0.15)) scaleX(1); }
+    55%{   transform:translate(calc(var(--dx)*0.78), calc(var(--dy)*0.3)) scaleX(1); }
+    72%{   transform:translate(calc(var(--dx)*0.42), calc(var(--dy)*-0.55)) scaleX(1); }
+    88%{   transform:translate(calc(var(--dx)*0.18), calc(var(--dy)*0.35)) scaleX(1); }
+    99.9%{ transform:translate(0,0) scaleX(1); }
+    100%{  transform:translate(0,0) scaleX(-1); }
   }
   .tank-empty-note{
     position:absolute; left:50%; top:44%; transform:translate(-50%,-50%);
@@ -929,11 +936,19 @@ function openTankModal(){
       <div class="tank-modal-title" id="modalTitle">쌓여가는 응원</div>
       <button type="button" class="tank-modal-close" id="modalClose">닫기</button>
     </div>
-    <div class="tank-modal-body">
+    <div class="tank-modal-body" id="modalBody">
+      <div class="tank-glow"></div>
+      <img class="castle-img" id="modalCastle" alt="어항 속 장난감 성">
       <div class="fish-layer" id="modalFishLayer"></div>
     </div>
   `;
   document.body.appendChild(tankModalEl);
+  // 성 이미지는 작은 어항에 이미 들어있는 것을 그대로 가져다 씀
+  // (base64 데이터를 코드에 한 번 더 넣지 않아 파일 크기가 늘지 않음)
+  const smallCastle = document.querySelector('.tank-glass .castle-img');
+  const bigCastle = document.getElementById('modalCastle');
+  if(smallCastle && bigCastle) bigCastle.src = smallCastle.src;
+
   document.getElementById('modalClose').addEventListener('click', closeTankModal);
   document.addEventListener('keydown', escCloseModal);
   // 레이아웃이 잡힌 뒤 크기를 재야 물고기 범위가 정확해짐
