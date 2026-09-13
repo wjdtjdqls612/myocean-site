@@ -164,7 +164,7 @@
   }
   .tank-rim-bottom{ height:17px; }
   .tank-glass{
-    position:relative; height:clamp(230px, 58vw, 300px); overflow:hidden;
+    position:relative; height:clamp(200px, 58vw, 300px); overflow:hidden;
     background:linear-gradient(180deg, rgba(242,166,85,.16), rgba(154,83,38,.22) 55%, rgba(20,12,5,.5));
     border-left:2px solid rgba(255,223,158,.45); border-right:2px solid rgba(255,223,158,.45);
     box-shadow:0 0 0 1px rgba(0,0,0,.4), 0 20px 40px -10px rgba(0,0,0,.7);
@@ -203,7 +203,8 @@
 
   .tank-modal{
     position:fixed; inset:0; z-index:40;
-    background:linear-gradient(180deg, rgba(7,5,2,.94), rgba(21,13,6,.97));
+    /* 완전 불투명. 이전에는 .94~.97이라 뒷 페이지가 비쳐 보였음 */
+    background:linear-gradient(180deg, #070502, #150d06);
     display:flex; flex-direction:column; padding:14px;
   }
   .tank-modal-head{
@@ -215,10 +216,25 @@
     font:inherit; cursor:pointer; padding:8px 14px; border-radius:8px;
     border:1px solid var(--line); background:rgba(0,0,0,.3); color:var(--gold);
   }
+  /* 화면 세로를 전부 채우면 협곡처럼 길어지므로 가로세로비를 기본 어항과
+     비슷하게 제한하고, 남는 공간은 위아래 여백으로 두어 세로 중앙 정렬.
+     배경도 불투명 색 위에 얹어 뒷 페이지가 비치지 않게 함 */
   .tank-modal-body{
-    flex:1 1 auto; position:relative; overflow:hidden; border-radius:10px;
+    /* flex-grow는 0이어야 함. 1이면 남은 세로 공간을 전부 흡수해서
+       아래 aspect-ratio로 계산한 높이를 덮어쓰고, margin:auto가 가져갈
+       여유 공간도 사라져 세로 중앙 정렬까지 무효가 됨 */
+    flex:0 1 auto; position:relative; overflow:hidden; border-radius:10px;
     border:1px solid var(--line);
-    background:linear-gradient(180deg, rgba(242,166,85,.16), rgba(154,83,38,.22) 55%, rgba(20,12,5,.5));
+    width:100%; max-width:min(100%, calc((100vh - 120px) * 1.7));
+    aspect-ratio: 1.7 / 1;
+    max-height:100%;
+    margin:auto;
+    background-color:#120b05;
+    background-image:linear-gradient(180deg, rgba(242,166,85,.16), rgba(154,83,38,.22) 55%, rgba(20,12,5,.5));
+  }
+  /* aspect-ratio 미지원 브라우저를 위한 대비: 비율 제한이 없으면 높이만 제한 */
+  @supports not (aspect-ratio: 1.7 / 1){
+    .tank-modal-body{ height:min(100%, 58vh); }
   }
   .tank-modal-body .fish-layer{ pointer-events:none; }
   .tank-modal-body .castle-img{
@@ -347,6 +363,7 @@
     color:var(--ink);
     border-radius:2px;
     padding:30px 26px 26px;
+    margin-bottom:48px;
     transform:rotate(-0.35deg);
     border:1px solid rgba(120,80,40,.35);
     box-shadow:
@@ -661,6 +678,8 @@ async function renderPublic(){
         </form>
       </div>
 
+      <div class="video-card"><div class="video-inner">${videoBlock}</div></div>
+
       <div class="intro">${INTRO_LINES.map(l=>`<p>${escapeHtml(l)}</p>`).join('')}</div>
 
       <div class="about-note">
@@ -669,8 +688,6 @@ async function renderPublic(){
         <p>이곳에 남겨주세요.</p>
         <p>다른 분들의 마음도 함께 볼 수 있어요.</p>
       </div>
-
-      <div class="video-card"><div class="video-inner">${videoBlock}</div></div>
 
       <footer><a href="#" id="adminLink" title="관리자">관리자</a></footer>
     </div>
