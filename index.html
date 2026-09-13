@@ -55,6 +55,23 @@
     word-break:keep-all; overflow-wrap:break-word;
   }
 
+  /* ---- 페이지 상단 노을빛 ----
+     히어로 하단의 따뜻한 색이 배경으로 자연스럽게 이어지도록 위에 한 겹 얹음.
+     배경색 변수(--bg, --bg2)는 그대로 두고 레이어만 추가.
+     fixed가 아니라 absolute라서 스크롤하면 함께 올라가 사라짐
+     (.sunbeam은 fixed라 계속 남지만, 이 겹은 상단에만 머물러야 함).
+     z-index는 .content(2)보다 아래 */
+  body::before{
+    content:''; position:absolute; z-index:0; pointer-events:none;
+    top:0; left:0; right:0; height:158vh;
+    background:linear-gradient(180deg,
+      rgba(242,166,85,.20) 0%,
+      rgba(242,166,85,.13) 16%,
+      rgba(154,83,38,.11)  40%,
+      rgba(154,83,38,.05)  68%,
+      rgba(154,83,38,0)    100%);
+  }
+
   /* ---- 대각선 햇살 + 먼지 입자 ---- */
   .sunbeam{
     position:fixed; inset:0; z-index:0; pointer-events:none;
@@ -103,6 +120,20 @@
     overflow:hidden;
     background:#0b0703;
   }
+  /* 이미지 하단부 밝기는 약 70인데 페이지 배경(#070502)은 밝기 5라,
+     이미지가 끝나는 선에서 밝기가 수직으로 떨어져 이미지만 따로 떠 보였음.
+     아래쪽 절반부터 서서히 어두워져 맨 아래에서 배경색과 완전히 같아지게 함.
+     창문과 노을이 있는 상단~중앙(0~46%)은 완전히 투명이라 영향 없음 */
+  .hero::after{
+    content:''; position:absolute; inset:0; pointer-events:none;
+    background:linear-gradient(180deg,
+      rgba(7,5,2,0)    46%,
+      rgba(7,5,2,.18)  62%,
+      rgba(7,5,2,.45)  76%,
+      rgba(7,5,2,.75)  88%,
+      rgba(7,5,2,.93)  96%,
+      #070502          100%);
+  }
   /* 좁은 화면에서만 화면 끝까지 닿게(full-bleed).
      이때는 박스가 세로로 충분히 길어 잘림 문제가 없음.
      body에 overflow-x:hidden이 있어 100vw로 인한 가로 스크롤은 생기지 않음 */
@@ -148,13 +179,15 @@
   .hero-text h1{ margin:0; text-shadow:0 2px 20px rgba(0,0,0,.8), 0 1px 3px rgba(0,0,0,.6); }
 
   /* ===== 전시 정보 ===== */
+  /* 히어로 아래가 검은 면적만 크고 비어 보여, 상하 패딩과 행 간격을 줄여
+     밀도를 높임. 글자 크기(라벨 12px / 값 17px)와 색은 그대로 */
   .exhibit-info{
-    margin:0 0 40px; padding:16px 0 18px;
+    margin:0 0 30px; padding:12px 0 13px;
     border-top:1px solid var(--line);
     border-bottom:1px solid var(--line);
   }
   .exhibit-info dl{ margin:0; }
-  .exhibit-info .row{ display:flex; align-items:baseline; gap:14px; padding:5px 0; }
+  .exhibit-info .row{ display:flex; align-items:baseline; gap:14px; padding:3px 0; }
   .exhibit-info dt{ flex:0 0 52px; font-size:12px; color:var(--muted); letter-spacing:.02em; }
   .exhibit-info dd{
     margin:0; flex:1 1 auto;
