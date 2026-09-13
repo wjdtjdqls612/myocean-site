@@ -75,30 +75,63 @@
   .content{ position:relative; z-index:2; }
   .wrap{ max-width:540px; margin:0 auto; padding: clamp(40px,8vw,56px) clamp(16px,5vw,22px) 90px; }
 
-  .eyebrow{ font-size:12px; color:var(--muted); letter-spacing:.04em; margin-bottom:10px; }
+  /* ===== 타이포 위계 3단 =====
+     1단 h1(제목) / 2단 .intro(본문) / 3단 .eyebrow·.about-note·.tank-count(보조)
+     각 단의 크기 차이를 크게 벌려 시선이 머물 지점을 명확히 함 */
+
+  /* 3단: 보조. 아이브로는 화면당 1개(제목 위 MY OCEAN)만 사용 */
+  .eyebrow{ font-size:12.5px; color:var(--muted); letter-spacing:.02em; margin-bottom:12px; }
+
+  /* 1단: 제목. 포스터와 동일한 단색 흰색.
+     그라디언트 배경클립을 제거해 구형 브라우저에서 글자가 사라지는 위험도 함께 해소 */
   h1{
     font-family:'Cormorant Garamond','Nanum Myeongjo',serif; font-weight:400;
-    font-size:clamp(36px,11vw,50px); line-height:1.12; letter-spacing:-.01em;
-    margin:0 0 22px; text-wrap:balance;
-    background:linear-gradient(120deg, var(--gold) 15%, var(--amber) 55%, var(--rust));
-    -webkit-background-clip:text; background-clip:text; color:transparent;
+    font-size:clamp(40px,12vw,58px); line-height:1.1; letter-spacing:-.01em;
+    margin:0 0 18px; text-wrap:balance;
+    color:#fff8ec;
+    text-shadow:0 2px 18px rgba(0,0,0,.55);
   }
+
+  /* ===== 전시 정보 ===== */
+  .exhibit-info{
+    margin:0 0 40px; padding:16px 0 18px;
+    border-top:1px solid var(--line);
+    border-bottom:1px solid var(--line);
+  }
+  .exhibit-info dl{ margin:0; }
+  .exhibit-info .row{ display:flex; align-items:baseline; gap:14px; padding:5px 0; }
+  .exhibit-info dt{ flex:0 0 52px; font-size:12px; color:var(--muted); letter-spacing:.02em; }
+  .exhibit-info dd{
+    margin:0; flex:1 1 auto;
+    font-family:'Cormorant Garamond','Nanum Myeongjo',serif;
+    font-size:17px; line-height:1.45; color:var(--gold);
+  }
+  .exhibit-info dd .sub{ display:block; font-size:13px; color:#e2d3ba; margin-top:2px; }
+  @media (max-width:360px){
+    .exhibit-info .row{ flex-direction:column; gap:2px; }
+    .exhibit-info dt{ flex:none; }
+  }
+
+  /* 2단: 본문 */
   .intro{
-    font-size:16px; line-height:1.6; color:#e2d3ba;
+    font-size:17px; line-height:1.75; color:#e2d3ba;
     margin:0 0 44px; padding-left:16px; border-left:1px solid var(--line);
   }
   .intro p{ margin:0 0 10px; }
   .intro p:last-child{ margin-bottom:0; }
 
+  /* 3단: About 박스 */
   .about-note{
-    position:relative; font-size:13.5px; line-height:1.7; color:#e2d3ba;
+    position:relative; font-size:14px; line-height:1.7; color:#e2d3ba;
     background:linear-gradient(135deg, rgba(242,166,85,.11), rgba(242,166,85,.02));
     border:1px solid rgba(242,166,85,.22); border-radius:6px;
     padding:18px 20px 17px; margin:0 0 44px;
   }
-  .about-note .eyebrow-small{
-    font-size:10.5px; letter-spacing:.14em; color:var(--gold);
-    text-transform:uppercase; margin:0 0 9px;
+  /* 대문자 + 넓은 자간 라벨을 제거하고 일반 소제목으로 변경.
+     아이브로는 제목 위 하나로 통일했으므로 여기서는 아이브로로 취급하지 않음 */
+  .about-note .note-label{
+    font-size:13px; color:var(--gold); margin:0 0 9px;
+    font-family:'Cormorant Garamond','Nanum Myeongjo',serif;
   }
   .about-note p{ margin:0 0 7px; }
   .about-note p:last-child{ margin-bottom:0; }
@@ -121,8 +154,8 @@
 
   /* ---- 어항 (참고 이미지 기반: 직사각형 유리 어항 + 성 + 물고기) ---- */
   .tank-section{ text-align:center; margin-bottom:52px; }
-  .tank-title{ font-family:'Cormorant Garamond','Nanum Myeongjo',serif; font-size:17px; color:var(--gold); margin-bottom:2px; }
-  .tank-count{ color:var(--muted); font-size:13px; margin-bottom:24px; }
+  .tank-title{ font-family:'Cormorant Garamond','Nanum Myeongjo',serif; font-size:19px; color:var(--gold); margin-bottom:2px; letter-spacing:.01em; }
+  .tank-count{ color:var(--muted); font-size:12.5px; margin-bottom:24px; }
 
   .tank{ width:100%; max-width:340px; margin:0 auto; position:relative; }
   .tank-rim-top, .tank-rim-bottom{
@@ -568,10 +601,28 @@ async function renderPublic(){
     <div class="wrap">
       <div class="eyebrow">MY OCEAN</div>
       <h1>나의 바다</h1>
+
+      <div class="exhibit-info">
+        <dl>
+          <div class="row">
+            <dt>기간</dt>
+            <dd>2026. 11. 04 (수) — 11. 09 (월)</dd>
+          </div>
+          <div class="row">
+            <dt>시간</dt>
+            <dd>10:30 — 18:00</dd>
+          </div>
+          <div class="row">
+            <dt>장소</dt>
+            <dd>마루아트센터<span class="sub">서울 종로구 인사동</span></dd>
+          </div>
+        </dl>
+      </div>
+
       <div class="intro">${INTRO_LINES.map(l=>`<p>${escapeHtml(l)}</p>`).join('')}</div>
 
       <div class="about-note">
-        <div class="eyebrow-small">About</div>
+        <div class="note-label">이 전시에 대하여</div>
         <p>고립되고 지친 청소년들에게 전하는 응원 한마디,</p>
         <p>이곳에 남겨주세요.</p>
         <p>다른 분들의 마음도 함께 볼 수 있어요.</p>
