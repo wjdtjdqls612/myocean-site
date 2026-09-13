@@ -157,14 +157,14 @@
   .tank-title{ font-family:'Cormorant Garamond','Nanum Myeongjo',serif; font-size:19px; color:var(--gold); margin-bottom:2px; letter-spacing:.01em; }
   .tank-count{ color:var(--muted); font-size:12.5px; margin-bottom:24px; }
 
-  .tank{ width:100%; max-width:340px; margin:0 auto; position:relative; }
+  .tank{ width:100%; max-width:520px; margin:0 auto; position:relative; }
   .tank-rim-top, .tank-rim-bottom{
-    height:10px; background:linear-gradient(180deg,#c98a4e,#6b4423);
+    height:12px; background:linear-gradient(180deg,#c98a4e,#6b4423);
     border-radius:2px; box-shadow:0 1px 0 rgba(255,223,158,.35) inset;
   }
-  .tank-rim-bottom{ height:14px; }
+  .tank-rim-bottom{ height:17px; }
   .tank-glass{
-    position:relative; height:190px; overflow:hidden;
+    position:relative; height:clamp(230px, 58vw, 300px); overflow:hidden;
     background:linear-gradient(180deg, rgba(242,166,85,.16), rgba(154,83,38,.22) 55%, rgba(20,12,5,.5));
     border-left:2px solid rgba(255,223,158,.45); border-right:2px solid rgba(255,223,158,.45);
     box-shadow:0 0 0 1px rgba(0,0,0,.4), 0 20px 40px -10px rgba(0,0,0,.7);
@@ -302,6 +302,18 @@
     html{ scroll-behavior:auto; }
   }
   .fish svg{ width:100%; height:100%; display:block; }
+  /* 어항이 커진 만큼 물고기도 같은 비율로 키움.
+     물고기 상자 크기(renderTank가 계산한 위치·이동 범위)는 그대로 두고
+     그려지는 그림만 확대하므로, 이동 범위 계산이 어긋나지 않음 */
+  .tank-glass .fish svg{ transform:scale(1.4); transform-origin:center; }
+  /* 그림만 1.4배 커지고 버튼 상자는 그대로라서, 물고기 가장자리를 눌러도
+     반응하지 않는 문제가 있었음. 보이지 않는 영역을 상자 바깥으로 10px 넓혀
+     클릭 판정을 확대된 그림에 맞춤. 물고기 클릭은 메시지를 여는 핵심 동작이라
+     실제 그림보다 조금 더 넉넉하게 잡음 */
+  .tank-glass .fish::before{
+    content:''; position:absolute;
+    inset:-10px;
+  }
   @keyframes swim{
     0%{    transform:translate(0,0) scaleX(-1); }
     12%{   transform:translate(calc(var(--dx)*0.18), calc(var(--dy)*0.35)) scaleX(-1); }
@@ -619,17 +631,6 @@ async function renderPublic(){
         </dl>
       </div>
 
-      <div class="intro">${INTRO_LINES.map(l=>`<p>${escapeHtml(l)}</p>`).join('')}</div>
-
-      <div class="about-note">
-        <div class="note-label">이 전시에 대하여</div>
-        <p>고립되고 지친 청소년들에게 전하는 응원 한마디,</p>
-        <p>이곳에 남겨주세요.</p>
-        <p>다른 분들의 마음도 함께 볼 수 있어요.</p>
-      </div>
-
-      <div class="video-card"><div class="video-inner">${videoBlock}</div></div>
-
       <div class="tank-section">
         <div class="tank-title">쌓여가는 응원</div>
         <div class="tank-count" id="tankCount">불러오는 중…</div>
@@ -659,6 +660,17 @@ async function renderPublic(){
           <div class="status-msg" id="statusMsg"></div>
         </form>
       </div>
+
+      <div class="intro">${INTRO_LINES.map(l=>`<p>${escapeHtml(l)}</p>`).join('')}</div>
+
+      <div class="about-note">
+        <div class="note-label">이 전시에 대하여</div>
+        <p>고립되고 지친 청소년들에게 전하는 응원 한마디,</p>
+        <p>이곳에 남겨주세요.</p>
+        <p>다른 분들의 마음도 함께 볼 수 있어요.</p>
+      </div>
+
+      <div class="video-card"><div class="video-inner">${videoBlock}</div></div>
 
       <footer><a href="#" id="adminLink" title="관리자">관리자</a></footer>
     </div>
@@ -1041,7 +1053,7 @@ function renderModalFish(){
 
     const dur = (55 + Math.random()*30).toFixed(1);
     const delay = (-(Math.random()*dur)).toFixed(1);
-    const w = 34 + Math.random()*22;   // 작은 어항보다 크게 → 누르기 쉬움
+    const w = 30 + Math.random()*16;   // 기본 어항이 커진 만큼 확대 배율을 낮춤
     const h = w*0.56;
 
     const startLeft = marginX;
@@ -1343,6 +1355,28 @@ route();
 // 6초 폴링(setInterval) 제거됨.
 // 이제 subscribeTank()의 실시간 리스너가 변경분만 받아 자동 반영하므로
 // 주기적인 전체 재조회가 필요 없고, 읽기 할당량과 배터리 소모가 크게 줄어듦.
+
+// 어항이 고정 폭(340px)에서 화면에 맞춰 늘어나는 유동 폭으로 바뀌었기 때문에,
+// 기기를 회전하거나 창 크기를 바꾸면 예전 크기로 계산된 물고기가 어항 밖으로 나감.
+// renderTank는 물고기를 만들 때 한 번만 어항 크기를 재므로, 크기가 바뀌면
+// 기존 물고기를 지워 renderTank가 새 크기로 다시 계산하도록 함.
+// (renderTank 자체는 수정하지 않고, 밖에서 다시 그리게만 유도)
+let lastTankWidth = 0;
+let resizeTimer = null;
+window.addEventListener('resize', ()=>{
+  clearTimeout(resizeTimer);
+  resizeTimer = setTimeout(()=>{
+    const layer = document.getElementById('notesLayer');
+    if(!layer) return;
+    const w = layer.getBoundingClientRect().width;
+    if(w > 0 && Math.abs(w - lastTankWidth) > 12){
+      lastTankWidth = w;
+      layer.querySelectorAll('.fish').forEach(el=>el.remove());
+      renderTank();
+      if(tankModalEl) renderModalFish();
+    }
+  }, 250);
+});
 </script>
 </body>
 </html>
