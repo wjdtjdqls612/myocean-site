@@ -221,11 +221,13 @@
   .intro p:last-child{ margin-bottom:0; }
 
   /* 3단: About 박스 */
+  /* 전시정보(margin-bottom:30px)와 어항 사이에 놓이므로 같은 30px로 맞춰
+     세 블록이 고른 간격으로 이어지게 함 */
   .about-note{
     position:relative; font-size:14px; line-height:1.7; color:#e2d3ba;
     background:linear-gradient(135deg, rgba(242,166,85,.11), rgba(242,166,85,.02));
     border:1px solid rgba(242,166,85,.22); border-radius:10px;
-    padding:18px 20px 17px; margin:0 0 44px;
+    padding:18px 20px 17px; margin:0 0 30px;
   }
   /* 대문자 + 넓은 자간 라벨을 제거하고 일반 소제목으로 변경.
      아이브로는 제목 위 하나로 통일했으므로 여기서는 아이브로로 취급하지 않음 */
@@ -800,6 +802,12 @@ async function renderPublic(){
         </dl>
       </div>
 
+      <div class="about-note">
+        <div class="note-label">이 전시에 대하여</div>
+        <p>고립되고 지친 청소년들에게 닿기를 바라며 만든 전시입니다.</p>
+        <p>전하고 싶은 응원 한마디를 아래에 남겨주세요.</p>
+      </div>
+
       <div class="tank-section">
         <div class="tank-title">쌓여가는 응원</div>
         <div class="tank-count" id="tankCount">첫 번째 마음을 기다리고 있어요</div>
@@ -833,13 +841,6 @@ async function renderPublic(){
       <div class="video-card"><div class="video-inner">${videoBlock}</div></div>
 
       <div class="intro">${INTRO_LINES.map(l=>`<p>${escapeHtml(l)}</p>`).join('')}</div>
-
-      <div class="about-note">
-        <div class="note-label">이 전시에 대하여</div>
-        <p>고립되고 지친 청소년들에게 전하는 응원 한마디,</p>
-        <p>이곳에 남겨주세요.</p>
-        <p>다른 분들의 마음도 함께 볼 수 있어요.</p>
-      </div>
 
       <footer><a href="#" id="adminLink" title="관리자">관리자</a></footer>
     </div>
