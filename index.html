@@ -92,6 +92,61 @@
     text-shadow:0 2px 18px rgba(0,0,0,.55);
   }
 
+  /* ===== 히어로 =====
+     넓은 화면에서는 .wrap의 좌우 패딩만큼만 바깥으로 빼내 컬럼 폭(540px)에 맞춤.
+     예전처럼 100vw로 펼치면 박스가 납작해지고(1440px에서 1440x522) cover가
+     가로를 채우려 확대하면서 세로가 대부분 잘려, 창문·바다·노을이 전부 사라졌음.
+     폭을 540px로 묶으면 넓은 화면에서도 폰과 같은 비율이 되어 창문이 보임 */
+  .hero{
+    position:relative;
+    margin:0 calc(-1 * clamp(16px,5vw,22px)) 34px;
+    overflow:hidden;
+    background:#0b0703;
+  }
+  /* 좁은 화면에서만 화면 끝까지 닿게(full-bleed).
+     이때는 박스가 세로로 충분히 길어 잘림 문제가 없음.
+     body에 overflow-x:hidden이 있어 100vw로 인한 가로 스크롤은 생기지 않음 */
+  @media (max-width:600px){
+    .hero{
+      width:100vw; max-width:none;
+      margin-left:50%; margin-right:0;
+      transform:translateX(-50%);
+      margin-top:calc(-1 * clamp(40px,8vw,56px));
+    }
+  }
+  /* 9:16을 그대로 쓰면 폰에서 690px이 되어 어항과 폼이 첫 화면에서 밀려남.
+     58vh로 잘라내고, 잘리는 쪽은 아래(나무 바닥·화분)가 되도록 위쪽을 살림 */
+  .hero-img{
+    display:block; width:100%; height:auto;
+    max-height:58vh;
+    object-fit:cover;
+    object-position:50% 5%;
+  }
+  /* 제목이 놓이는 상단 구간만 어둡게 덮는 한 겹.
+     이미지 상단 0~10%는 어둡고 고르지만(평균 47), 바로 아래 10~20%는
+     밝고 편차가 커서(평균 87) 제목이 그 위까지 내려오면 읽히지 않음.
+     제목 블록 전체를 덮을 만큼만 깔고 그 아래는 자연스럽게 사라지게 함 */
+  .hero-veil{
+    position:absolute; inset:0; pointer-events:none;
+    background:linear-gradient(180deg,
+      rgba(4,3,1,.80) 0%,
+      rgba(4,3,1,.62) 12%,
+      rgba(4,3,1,.32) 26%,
+      rgba(4,3,1,.10) 36%,
+      transparent 46%);
+  }
+  /* 좌우 패딩을 .wrap과 같은 clamp(16px,5vw,22px)로 맞췄기 때문에,
+     넓은 화면(히어로 폭 540px)에서는 제목이 아래 전시정보와 정확히 같은 선에서
+     시작하고, 좁은 화면(히어로 폭 100vw)에서도 본문 컬럼과 어긋나지 않음 */
+  .hero-text{
+    position:absolute; top:0; left:50%; transform:translateX(-50%);
+    width:100%; max-width:540px;
+    padding: clamp(20px,5vw,32px) clamp(16px,5vw,22px) 0;
+    box-sizing:border-box;
+  }
+  .hero-text .eyebrow{ color:rgba(255,248,236,.82); margin-bottom:10px; }
+  .hero-text h1{ margin:0; text-shadow:0 2px 20px rgba(0,0,0,.8), 0 1px 3px rgba(0,0,0,.6); }
+
   /* ===== 전시 정보 ===== */
   .exhibit-info{
     margin:0 0 40px; padding:16px 0 18px;
@@ -628,8 +683,20 @@ async function renderPublic(){
 
   app.innerHTML = `
     <div class="wrap">
-      <div class="eyebrow">MY OCEAN</div>
-      <h1>나의 바다</h1>
+      <div class="hero">
+        <picture>
+          <source srcset="hero-1080.webp" type="image/webp">
+          <img class="hero-img" src="hero-1080.jpg"
+               width="1080" height="1920"
+               loading="eager" fetchpriority="high" decoding="async"
+               alt="창문 하나로 나뉜 바다. 왼쪽 창유리 너머에는 비 내리는 청회색 바다가, 오른쪽 열린 창 너머에는 노을이 지는 바다가 보인다.">
+        </picture>
+        <div class="hero-veil"></div>
+        <div class="hero-text">
+          <div class="eyebrow">MY OCEAN</div>
+          <h1>나의 바다</h1>
+        </div>
+      </div>
 
       <div class="exhibit-info">
         <dl>
