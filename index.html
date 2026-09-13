@@ -288,7 +288,7 @@
        swim이 transform을 쓰고 있어 진입 연출은 opacity와 filter만 사용.
        delay와 iteration-count도 순서대로 콤마로 짝을 맞춰야 함 */
     animation: swim var(--dur,24s) ease-in-out infinite,
-               fishArrive 1.2s ease-out;
+               fishArrive 2.2s ease-out;
     animation-delay: var(--delay,0s), 0s;
     animation-iteration-count: infinite, 1;
     filter:drop-shadow(0 2px 3px rgba(0,0,0,.4));
@@ -421,6 +421,8 @@
     .fish, .fish-wrap, .fish-body{ animation-duration:180s !important; }
     /* 진입 연출(fishArrive)도 함께 끔. swim은 위에서 느리게만 하고 남겨둠 */
     .fish{ animation-name:swim !important; animation-iteration-count:infinite !important; }
+    /* 안쪽 svg의 크기 변화(fishSettle)도 끔. 정적 scale(1.4)만 남음 */
+    .tank-glass .fish svg{ animation:none !important; }
     .mote{ animation:none !important; opacity:.14 !important; }
     .admin-item.is-new{ animation:none !important; }
     html{ scroll-behavior:auto; }
@@ -429,7 +431,13 @@
   /* 어항이 커진 만큼 물고기도 같은 비율로 키움.
      물고기 상자 크기(renderTank가 계산한 위치·이동 범위)는 그대로 두고
      그려지는 그림만 확대하므로, 이동 범위 계산이 어긋나지 않음 */
-  .tank-glass .fish svg{ transform:scale(1.4); transform-origin:center; }
+  .tank-glass .fish svg{
+    transform:scale(1.4); transform-origin:center;
+    /* 진입 시 크기 변화. .fish는 swim이 transform을 점유하고 있어 크기를
+       못 넣지만, 안쪽 svg는 별개 요소라 여기에 걸 수 있음.
+       지속시간은 fishArrive와 동일한 2.2초 */
+    animation: fishSettle 2.2s ease-out;
+  }
   /* 그림만 1.4배 커지고 버튼 상자는 그대로라서, 물고기 가장자리를 눌러도
      반응하지 않는 문제가 있었음. 보이지 않는 영역을 상자 바깥으로 10px 넓혀
      클릭 판정을 확대된 그림에 맞춤. 물고기 클릭은 메시지를 여는 핵심 동작이라
@@ -439,12 +447,28 @@
     inset:-10px;
   }
   /* 새로 승인되어 어항에 들어오는 물고기의 등장.
-     swim이 transform을 점유하고 있으므로 opacity와 filter만 사용 */
+     swim이 transform을 점유하고 있으므로 여기서는 opacity와 filter만 사용하고,
+     크기 변화는 안쪽 svg의 fishSettle이 맡음.
+     밝은 구간(10~45%)을 약 0.77초 유지해 눈에 남게 하고,
+     100%는 .fish의 정적 filter 값과 글자까지 똑같이 맞춰 종료 시 밝기가 튀지 않게 함 */
   @keyframes fishArrive{
-    0%{   opacity:0; filter:drop-shadow(0 0 0 rgba(255,223,158,0)); }
-    35%{  opacity:1; filter:drop-shadow(0 0 12px rgba(255,223,158,.95)) brightness(1.6); }
-    70%{  opacity:1; filter:drop-shadow(0 0 6px rgba(255,223,158,.45)) brightness(1.2); }
-    100%{ opacity:1; filter:drop-shadow(0 2px 3px rgba(0,0,0,.4)); }
+    0%{   opacity:0;  filter:drop-shadow(0 0 0 rgba(255,223,158,0)) brightness(2); }
+    10%{  opacity:1;  filter:drop-shadow(0 0 26px rgba(255,223,158,.95)) brightness(2); }
+    45%{  opacity:1;  filter:drop-shadow(0 0 24px rgba(255,223,158,.85)) brightness(1.9); }
+    62%{  opacity:1;  filter:drop-shadow(0 0 16px rgba(255,223,158,.6)) brightness(1.55); }
+    80%{  opacity:1;  filter:drop-shadow(0 1px 8px rgba(255,223,158,.3)) brightness(1.2); }
+    100%{ opacity:1;  filter:drop-shadow(0 2px 3px rgba(0,0,0,.4)); }
+  }
+  /* 크기 변화. 사람 눈은 밝기보다 크기 변화에 훨씬 민감해서 이쪽이 실제 신호가 됨.
+     크게 나타났다가 1.25로 살짝 지나친 뒤 1.4로 되돌아와 물속에 내려앉는 느낌.
+     100%는 정적 값 scale(1.4)과 동일해야 종료 시 크기가 튀지 않음 */
+  @keyframes fishSettle{
+    0%{   transform:scale(2.4); }
+    28%{  transform:scale(1.85); }
+    52%{  transform:scale(1.5); }
+    72%{  transform:scale(1.25); }
+    88%{  transform:scale(1.47); }
+    100%{ transform:scale(1.4); }
   }
   @keyframes swim{
     0%{    transform:translate(0,0) scaleX(-1); }
