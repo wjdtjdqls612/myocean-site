@@ -118,21 +118,6 @@
     position:relative;
     margin:0 calc(-1 * clamp(16px,5vw,22px)) 34px;
     overflow:hidden;
-    background:#0b0703;
-  }
-  /* 이미지 하단부 밝기는 약 70인데 페이지 배경(#070502)은 밝기 5라,
-     이미지가 끝나는 선에서 밝기가 수직으로 떨어져 이미지만 따로 떠 보였음.
-     아래쪽 절반부터 서서히 어두워져 맨 아래에서 배경색과 완전히 같아지게 함.
-     창문과 노을이 있는 상단~중앙(0~46%)은 완전히 투명이라 영향 없음 */
-  .hero::after{
-    content:''; position:absolute; inset:0; pointer-events:none;
-    background:linear-gradient(180deg,
-      rgba(7,5,2,0)    46%,
-      rgba(7,5,2,.18)  62%,
-      rgba(7,5,2,.45)  76%,
-      rgba(7,5,2,.75)  88%,
-      rgba(7,5,2,.93)  96%,
-      #070502          100%);
   }
   /* 좁은 화면에서만 화면 끝까지 닿게(full-bleed).
      이때는 박스가 세로로 충분히 길어 잘림 문제가 없음.
@@ -152,6 +137,33 @@
     max-height:58vh;
     object-fit:cover;
     object-position:50% 5%;
+    /* 검은 막으로 덮는 대신 이미지 자체를 아래로 갈수록 투명하게 만듦.
+       .content에 배경이 없어서, 뚫린 자리에는 페이지 배경과 그 위의
+       body::before 노을빛이 그대로 드러남. 색을 맞출 필요 없이
+       구조적으로 같은 면이 되므로 경계선이 생기지 않음.
+       마스크는 .hero-img에만 적용. .hero에 걸면 제목까지 흐려짐 */
+    -webkit-mask-image:linear-gradient(180deg, #000 0%, #000 55%, transparent 100%);
+            mask-image:linear-gradient(180deg, #000 0%, #000 55%, transparent 100%);
+    -webkit-mask-size:100% 100%;
+            mask-size:100% 100%;
+    -webkit-mask-repeat:no-repeat;
+            mask-repeat:no-repeat;
+  }
+  /* 마스크를 지원하지 않는 브라우저에서만 예전 방식의 하단 페이드를 되살림.
+       표준·웹킷 접두사 어느 쪽도 지원하지 않을 때만 걸리므로,
+       마스크가 적용되는 브라우저에서 두 겹이 겹쳐 어두워지는 일은 없음 */
+  @supports not ((mask-image: linear-gradient(#000, transparent)) or (-webkit-mask-image: linear-gradient(#000, transparent))){
+    .hero{ background:#0b0703; }
+    .hero::after{
+      content:''; position:absolute; inset:0; pointer-events:none;
+      background:linear-gradient(180deg,
+        rgba(7,5,2,0)    46%,
+        rgba(7,5,2,.18)  62%,
+        rgba(7,5,2,.45)  76%,
+        rgba(7,5,2,.75)  88%,
+        rgba(7,5,2,.93)  96%,
+        #070502          100%);
+    }
   }
   /* 제목이 놓이는 상단 구간만 어둡게 덮는 한 겹.
      이미지 상단 0~10%는 어둡고 고르지만(평균 47), 바로 아래 10~20%는
